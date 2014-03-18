@@ -7,19 +7,19 @@ requires.io API
 
 Install:
 
-.. code::
+.. code-block:: text
 
     pip install requires.io
 
 Quick start:
 
-.. code::
+.. code-block:: text
 
     requires.io -a my_auth_token -r my_repo /path/to/my/repo
 
 Usage:
 
-.. code::
+.. code-block:: text
 
     requires.io [options] path ...
 
