@@ -1,0 +1,13 @@
+*.py[cod]
+
+*.egg
+*.egg-info
+dist
+build
+sdist
+__pycache__
+
+.tox
+
+.idea
+*.iml
