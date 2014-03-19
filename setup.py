@@ -12,7 +12,7 @@ from setuptools import setup
 
 setup(
     name='requires.io',
-    version='0.1.0',
+    version='0.2.0',
     description='requires.io API',
     long_description=str(open('README.rst', 'rb').read()),
     url='https://requires.io/',
