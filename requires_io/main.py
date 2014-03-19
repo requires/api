@@ -83,7 +83,7 @@ def _to_urls(paths):
     if not paths:
         return []
     if len(paths) == 1:
-        return [os.path.basename(paths[0]), ]
+        return [os.path.basename(next(iter(paths))), ]
     index = _common_index(paths)
     return ['/'.join(path.split(os.sep)[index:]) for path in paths]
 
