@@ -10,7 +10,6 @@ from requires_io.main import Config, require_io_re, _to_urls
 
 
 class Repository(object):
-
     def __init__(self, name):
         self.name = name
         self.root = None
@@ -38,8 +37,7 @@ class Repository(object):
 
 
 class TestCase(unittest.TestCase):
-
-    def assertIsNotNone(self, val):   # missing in 2.6
+    def assertIsNotNone(self, val):  # missing in 2.6
         self.assertTrue(val is not None)
 
     def test_re(self):
@@ -75,6 +73,7 @@ class TestCase(unittest.TestCase):
                 set([os.path.join(repository.root, 'foobar.txt')]),
                 [os.path.join(repository.root, '*.txt'), ],
             )
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -4,9 +4,11 @@ import os
 # allow setup.py to be run from any path
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-try: import setuptools
+try:
+    import setuptools
 except ImportError:
     import ez_setup
+
     ez_setup.use_setuptools()
 from setuptools import setup
 

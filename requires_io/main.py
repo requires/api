@@ -12,11 +12,11 @@ import requests
 
 from . import __version__
 
+
 log = logging.getLogger(__name__)
 
 
 def main(args=sys.argv, extra=None, setup_log=True):
-
     if setup_log:
         logging.basicConfig(format='%(message)s', level=logging.DEBUG)
 
@@ -24,7 +24,8 @@ def main(args=sys.argv, extra=None, setup_log=True):
     version = '%prog ' + __version__
     parser = OptionParser(usage=usage, version=version)
     parser.add_option('-a', '--auth-token', dest='token',
-                      help='API token.', metavar='TOKEN')
+                      help='API token. (default: REQUIRES_TOKEN environment variable)', metavar='TOKEN',
+                      default=os.getenv('REQUIRES_TOKEN'))
     parser.add_option('-r', '--repository', dest='repository_name',
                       help='repository name.', metavar='NAME')
     parser.add_option('-p', '--private',
@@ -60,6 +61,7 @@ def main(args=sys.argv, extra=None, setup_log=True):
 
     log.info('done')
 
+
 require_io_re = re.compile(r'''
    [/\\](
    setup\.py
@@ -89,7 +91,6 @@ def _to_urls(paths):
 
 
 class Config(object):
-
     def __init__(self, options, paths):
         self.options = dict(
             verify=True,
@@ -137,7 +138,6 @@ class Config(object):
 
 
 class Client(object):
-
     def __init__(self, config):
         self.config = config
 
