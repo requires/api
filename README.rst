@@ -1,7 +1,7 @@
 requires.io API
 ---------------
 
-.. image:: https://requires.io/github/requires/api/requirements.png?branch=master
+.. image:: https://requires.io/github/requires/api/requirements.svg?branch=master
    :target: https://requires.io/github/requires/api/requirements/?branch=master
    :alt: Requirements Status
 
