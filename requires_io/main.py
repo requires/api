@@ -14,6 +14,8 @@ from . import __version__
 
 
 log = logging.getLogger(__name__)
+repository_name_re = r'^[a-zA-Z0-9-_\.]{1,64}$'
+branch_name_re = r'^[a-zA-Z0-9-_\.]{1,124}$'
 
 
 def main(args=sys.argv, extra=None, setup_log=True):
@@ -43,8 +45,12 @@ def main(args=sys.argv, extra=None, setup_log=True):
         parser.error('authentication token required (use -a or --auth-token option)')
     if not options.repository_name:
         parser.error('repository name required (use -r or --repository option)')
+    elif not re.search(repository_name_re, options.repository_name):
+        parser.error('repository name should match %s' % repository_name_re)
     if not options.branch_name:
         parser.error('branch name required (use -b or --branch)')
+    elif not re.search(branch_name_re, options.branch_name):
+        parser.error('branch name should match %s' % branch_name_re)
     if len(args) == 0:
         parser.error('at least one path required')
 
