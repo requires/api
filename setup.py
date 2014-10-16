@@ -14,7 +14,7 @@ from setuptools import setup
 
 setup(
     name='requires.io',
-    version='0.2.1',
+    version='0.2.0',
     description='requires.io API',
     long_description=str(open('README.rst', 'rb').read()),
     url='https://requires.io/',
@@ -26,7 +26,7 @@ setup(
     install_requires=['requests >= 2.0.0', ],
     entry_points={
         'console_scripts': [
-            'requires.io = requires_io.main:main',
+            'requires.io = requires_io.commands:main',
         ],
     },
     classifiers=(
