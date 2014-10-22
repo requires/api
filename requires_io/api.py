@@ -29,26 +29,8 @@ def _to_urls(paths):
     return ['/'.join(path.split(os.sep)[index:]) for path in paths]
 
 
-class Repository(object):
-    def __init__(self, name, owner=None, provider=None):
-        self.name = name
-        self.owner = owner
-        self.provider = provider
-
-    @property
-    def full_name(self):
-        if not self.provider:
-            return u'-/-/%s' % self.name
-        return u'%s/%s/%s' % (self.provider, self.owner, self.name)
-
-    def __unicode__(self):
-        if not self.provider:
-            return self.name
-        return self.full_name
-
-
 class RequiresAPI(object):
-    def __init__(self, token, base_url='https://requires.io/api/v2/', verify=True):
+    def __init__(self, token, base_url='http://127.0.0.1:8001/api/v1/', verify=True):
         self.token = token
         self.base_url = base_url
         if self.base_url[-1] != '/':
@@ -63,13 +45,11 @@ class RequiresAPI(object):
         }
 
     def _update_reference(self, url, paths):
-        payload = dict(
-            files=[],
-        )
+        payload = []
         for path, url in zip(paths, _to_urls(paths)):
             log.info('add %s to payload', url)
             with open(path, 'rb') as f:
-                payload['files'].append({
+                payload.append({
                     'path': url,
                     'content': base64.b64encode(f.read()),
                 })
@@ -84,12 +64,15 @@ class RequiresAPI(object):
     # REPOSITORY
     # -------------------------------------------------------------------------
     def _get_repository_url(self, repository):
-        return '%s%s' % (self.base_url, repository.full_name)
+        return '%srepos/%s' % (self.base_url, repository)
 
-    def update_repository(self, repository, private=None):
+    def update_repository(self, repository, enabled=None, private=None):
         payload = {}
+        if enabled is not None:
+            payload['enabled'] = enabled
         if private is not None:
             payload['private'] = private
+        print payload
         requests.put(
             self._get_repository_url(repository),
             headers=self._get_headers(),
@@ -156,6 +139,7 @@ class RequiresAPI(object):
     def update_site(self, repository, name):
         log.info('update site %s on repository %s', name, repository)
         data = subprocess.check_output(['pip', 'freeze', '--local']).decode(sys.stdout.encoding)
+        print self._get_site_url(repository, name)
         requests.put(
             self._get_site_url(repository, name),
             headers=self._get_headers('text/plain'),

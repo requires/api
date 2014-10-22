@@ -5,48 +5,36 @@ import sys
 import glob
 import logging
 import argparse
+import itertools
 import socket
 
 from . import __version__
-from .api import Repository, RequiresAPI
+from .api import RequiresAPI
 
 
 log = logging.getLogger(__name__)
 
 
-class ReferenceType(object):
-    def __init__(self):
-        self.max_length = 124
-        self.pattern = r'^[a-zA-Z0-9-_\.]$'
+def chain(values):
+    return set(itertools.chain(*values))
+
+
+class NameType(object):
+    def __init__(self, default=None):
+        self.default = default
+        self.max_length = 128
+        self.pattern = '^[a-zA-Z0-9-_\.]{1,%s}$' % self.max_length
 
     def __call__(self, value):
-        if not isinstance(value, basestring):
-            raise argparse.ArgumentTypeError('invalid string value: %r' % value)
+        if not value:
+            if self.default:
+                return self.default
+            raise argparse.ArgumentTypeError('required')
         if len(value) > self.max_length:
             raise argparse.ArgumentTypeError('at most %d character (it has %d)' % (self.max_length, len(value)))
         if not re.search(self.pattern, value):
-            raise argparse.ArgumentTypeError('only alphanumeric character, dash, point and underscore allowed')
+            raise argparse.ArgumentTypeError('only alphanumeric and "-_." character allowed')
         return value
-
-
-class RepositoryType(object):
-    PROVIDERS = ('github', 'bitbucket', 'enterprise')
-
-    def __init__(self, full):
-        self.full = full
-
-    def __call__(self, value):
-        values = value.split('/')
-        if len(values) == 1:
-            return Repository(value)
-        elif len(values) == 3:
-            provider, owner, name = values
-            if provider not in self.PROVIDERS:
-                raise argparse.ArgumentTypeError(
-                    'invalid provider: %r (choose from %s)' % (provider, ', '.join(self.PROVIDERS), ))
-
-            return Repository(name, owner=owner, provider=provider)
-        raise argparse.ArgumentTypeError('invalid')
 
 
 glob_type_re = re.compile(r'''
@@ -71,7 +59,7 @@ class GlobType(object):
                     for name in files:
                         current = os.path.join(root, name)
                         if glob_type_re.search(current):
-                            paths.append(current)
+                            paths.add(current)
                     # Ignore CVS folders
                     if 'CVS' in dirs:
                         dirs.remove('CVS')
@@ -81,10 +69,9 @@ class GlobType(object):
                         dirs.remove(ignore)
             # If this is a file, add it anyway
             elif os.path.isfile(path):
-                paths.append(path)
+                paths.add(path)
         if not paths:
-            raise argparse.ArgumentTypeError(
-                'no requirement file for %s (looks for setup.py, tox.ini, req*.txt ...)' % path)
+            raise argparse.ArgumentTypeError('failed to find requirement files for %s' % path)
         return paths
 
 
@@ -104,17 +91,17 @@ class Commands(object):
 
     def add_argument_paths(self, group):
         group.add_argument('paths', metavar='PATH', type=GlobType(), nargs='+',
-                           help='requirement file or folder containing requirement files (glob allowed)')
+                           help='requirement files or folders containing requirement files (glob allowed)')
 
     def add_parser(self, title, help, executor):
         parser = self.subparsers.add_parser(title, help=help)
         group = parser.add_argument_group('global options')
-        group.add_argument('-t', '--token', required=True,
-                           help='API token. (default: REQUIRES_TOKEN environment variable)', metavar='TOKEN',
+        group.add_argument('-t', '--token',
+                           help='API token. (default: REQUIRES_TOKEN environment variable)',
                            default=os.getenv('REQUIRES_TOKEN'))
         group.add_argument('-r', '--repository', metavar='REPO',
-                           help='repository format: {github,bitbucket,enterprise}/:owner/:name',
-                           type=RepositoryType(True), required=True)
+                           help='repository name',
+                           type=NameType(), required=True)
         parser.set_defaults(execute=lambda args: executor(RequiresAPI(args.token), args))
         return parser.add_argument_group('command options')
 
@@ -127,13 +114,13 @@ class Commands(object):
     # -------------------------------------------------------------------------
     def add_parser_update_repository(self):
         group = self.add_parser('update-repo', 'update repository',
-                                lambda api, args: api.update_repository(args.repository))
+                                lambda api, args: api.update_repository(args.repository, args.enabled, args.private))
         subgroup = group.add_mutually_exclusive_group()
-        subgroup.add_argument('--public', action='store_true')
-        subgroup.add_argument('--private', action='store_true')
+        subgroup.add_argument('--enabled', dest='enabled', help='repo public', action='store_true', default=None)
+        subgroup.add_argument('--disabled', dest='enabled', help='repo public', action='store_false', default=None)
         subgroup = group.add_mutually_exclusive_group()
-        subgroup.add_argument('--enabled', action='store_true')
-        subgroup.add_argument('--disabled', action='store_true')
+        subgroup.add_argument('--public', dest='private', help='repo public', action='store_false', default=None)
+        subgroup.add_argument('--private', dest='private', help='repo public', action='store_true', default=None)
 
     def add_parser_delete_repository(self):
         self.add_parser('delete-repo', 'delete repository',
@@ -143,11 +130,11 @@ class Commands(object):
     # BRANCH
     # -------------------------------------------------------------------------
     def add_argument_branch_name(self, group):
-        group.add_argument('-n', '--name', metavar='SITE', default=socket.gethostname(), required=True)
+        group.add_argument('-n', '--name', help='branch name', type=NameType(), required=True)
 
     def add_parser_update_branch(self):
         group = self.add_parser('update-branch', 'create or update branch',
-                                lambda api, args: api.update_branch(args.repository, args.name, args.paths))
+                                lambda api, args: api.update_branch(args.repository, args.name, chain(args.paths)))
         self.add_argument_branch_name(group)
         self.add_argument_paths(group)
 
@@ -160,11 +147,11 @@ class Commands(object):
     # TAG
     # -------------------------------------------------------------------------
     def add_argument_tag_name(self, group):
-        group.add_argument('-n', '--name', help='tag name', metavar='TAG', required=True)
+        group.add_argument('-n', '--name', help='tag name', type=NameType(), required=True)
 
     def add_parser_update_tag(self):
         group = self.add_parser('tag', 'create or update tag',
-                                lambda api, args: api.update_tag(args.repository, args.name, args.paths))
+                                lambda api, args: api.update_tag(args.repository, args.name, chain(args.paths)))
         self.add_argument_tag_name(group)
         self.add_argument_paths(group)
 
@@ -178,16 +165,16 @@ class Commands(object):
     # -------------------------------------------------------------------------
     def add_argument_site_name(self, group):
         group.add_argument('-n', '--name', help='site name (default: %s)' % socket.gethostname(),
-                           metavar='SITENAME', default=socket.gethostname(), required=True)
+                           type=NameType(socket.gethostname()))
 
     def add_parser_update_site(self):
         group = self.add_parser('site', 'create or update site',
-                                lambda api, args: api.delete_tag(args.repository, args.name))
+                                lambda api, args: api.update_site(args.repository, args.name))
         self.add_argument_site_name(group)
 
     def add_parser_delete_site(self):
         group = self.add_parser('delete-site', 'delete site',
-                                lambda api, args: api.delete_tag(args.repository, args.name))
+                                lambda api, args: api.delete_site(args.repository, args.name))
         self.add_argument_site_name(group)
 
 
