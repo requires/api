@@ -114,13 +114,10 @@ class Commands(object):
     # -------------------------------------------------------------------------
     def add_parser_update_repository(self):
         group = self.add_parser('update-repo', 'update repository',
-                                lambda api, args: api.update_repository(args.repository, args.enabled, args.private))
-        subgroup = group.add_mutually_exclusive_group()
-        subgroup.add_argument('--enabled', dest='enabled', help='repo public', action='store_true', default=None)
-        subgroup.add_argument('--disabled', dest='enabled', help='repo public', action='store_false', default=None)
-        subgroup = group.add_mutually_exclusive_group()
-        subgroup.add_argument('--public', dest='private', help='repo public', action='store_false', default=None)
-        subgroup.add_argument('--private', dest='private', help='repo public', action='store_true', default=None)
+                                lambda api, args: api.update_repository(args.repository, args.private))
+        subgroup = group.add_mutually_exclusive_group(required=True)
+        subgroup.add_argument('--public', dest='private', help='repo public', action='store_false')
+        subgroup.add_argument('--private', dest='private', help='repo public', action='store_true')
 
     def add_parser_delete_repository(self):
         self.add_parser('delete-repo', 'delete repository',

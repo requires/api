@@ -46,11 +46,11 @@ class RequiresAPI(object):
 
     def _update_reference(self, url, paths):
         payload = []
-        for path, url in zip(paths, _to_urls(paths)):
-            log.info('add %s to payload', url)
+        for path, relative in zip(paths, _to_urls(paths)):
+            log.info('add %s to payload', relative)
             with open(path, 'rb') as f:
                 payload.append({
-                    'path': url,
+                    'path': relative,
                     'content': base64.b64encode(f.read()),
                 })
         requests.put(
@@ -66,13 +66,10 @@ class RequiresAPI(object):
     def _get_repository_url(self, repository):
         return '%srepos/%s' % (self.base_url, repository)
 
-    def update_repository(self, repository, enabled=None, private=None):
-        payload = {}
-        if enabled is not None:
-            payload['enabled'] = enabled
-        if private is not None:
-            payload['private'] = private
-        print payload
+    def update_repository(self, repository, private):
+        payload = dict(
+            private=private,
+        )
         requests.put(
             self._get_repository_url(repository),
             headers=self._get_headers(),
