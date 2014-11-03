@@ -3,6 +3,7 @@ import os
 import sys
 import json
 import base64
+import codecs
 import logging
 import subprocess
 
@@ -80,7 +81,7 @@ class RequiresAPI(object):
     def delete_repository(self, repository):
         log.info('delete repository %s', repository)
         requests.delete(
-            self._get_repository_url(self, repository),
+            self._get_repository_url(repository),
             headers=self._get_headers(),
             verify=self.verify,
         ).raise_for_status()
@@ -135,8 +136,9 @@ class RequiresAPI(object):
 
     def update_site(self, repository, name):
         log.info('update site %s on repository %s', name, repository)
-        data = subprocess.check_output(['pip', 'freeze', '--local']).decode(sys.stdout.encoding)
-        print self._get_site_url(repository, name)
+        output = subprocess.check_output(['pip', 'freeze', '--local'])
+        encoding = getattr(sys.stdout, 'encoding', 'utf-8')
+        data = codecs.decode(output, encoding, 'replace')
         requests.put(
             self._get_site_url(repository, name),
             headers=self._get_headers('text/plain'),

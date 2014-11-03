@@ -6,7 +6,7 @@ import unittest
 import tempfile
 import contextlib
 
-from requires_io.main import Config, require_io_re, _to_urls
+# from requires_io.main import Config, require_io_re, _to_urls
 
 
 class Repository(object):
