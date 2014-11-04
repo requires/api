@@ -5,34 +5,41 @@ requires.io API
    :target: https://requires.io/github/requires/api/requirements/?branch=master
    :alt: Requirements Status
 
-Install:
+Install package:
 
 .. code-block:: text
 
     pip install requires.io
 
-Quick start:
+Create or update a repository:
 
 .. code-block:: text
 
-    requires.io -a my_auth_token -r my_repo /path/to/my/repo
+    requires.io update-repo -t MY_TOKEN -r MY_REPO (--public | --private)
 
-Usage:
+Create or update a branch:
 
 .. code-block:: text
 
-    requires.io [options] path ...
+    requires.io update-branch -t MY_TOKEN -r MY_REPO -n MY_BRANCH /path/to/my/sources
 
-    Options:
-      --version             show program's version number and exit
-      -h, --help            show this help message and exit
-      -a TOKEN, --auth-token=TOKEN
-                            API token. (default: REQUIRES_TOKEN environment
-                            variable)
-      -r NAME, --repository=NAME
-                            repository name.
-      -p, --private         is the repository private? (default: false)
-      -b NAME, --branch=NAME
-                            branch or tag name. (default: master)
-      -t, --tag             does the branch name stand for a tag? (default: false)
+Create or update a tag:
 
+.. code-block:: text
+
+    requires.io update-tag -t MY_TOKEN -r MY_REPO -n MY_TAG /path/to/my/sources
+
+Monitor a site (default name is the hostname):
+
+.. code-block:: text
+
+    requires.io update-site -t MY_TOKEN -r MY_REPO
+
+Delete repositories, branches, tags and sites:
+
+.. code-block:: text
+
+    requires.io delete-repo -t MY_TOKEN -r MY_REPO
+    requires.io delete-branch -t MY_TOKEN -r MY_REPO
+    requires.io delete-tag -t MY_TOKEN -r MY_REPO
+    requires.io delete-site -t MY_TOKEN -r MY_REPO
