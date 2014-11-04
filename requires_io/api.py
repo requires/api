@@ -31,7 +31,7 @@ def _to_urls(paths):
 
 
 class RequiresAPI(object):
-    def __init__(self, token, base_url='http://127.0.0.1:8001/api/v1/', verify=True):
+    def __init__(self, token, base_url='https://requires.io/api/v2/', verify=True):
         self.token = token
         self.base_url = base_url
         if self.base_url[-1] != '/':

@@ -20,20 +20,24 @@ def chain(values):
 
 
 class NameType(object):
-    def __init__(self, default=None):
-        self.default = default
+    def __init__(self):
         self.max_length = 128
         self.pattern = '^[a-zA-Z0-9-_\.]{1,%s}$' % self.max_length
 
     def __call__(self, value):
         if not value:
-            if self.default:
-                return self.default
             raise argparse.ArgumentTypeError('required')
         if len(value) > self.max_length:
             raise argparse.ArgumentTypeError('at most %d character (it has %d)' % (self.max_length, len(value)))
         if not re.search(self.pattern, value):
             raise argparse.ArgumentTypeError('only alphanumeric and "-_." character allowed')
+        return value
+
+
+class TokenType(object):
+    def __call__(self, value):
+        if not value:
+            raise argparse.ArgumentTypeError('required')
         return value
 
 
@@ -79,7 +83,7 @@ class Commands(object):
     def __init__(self):
         self.parser = argparse.ArgumentParser(prog='requires.io')
         self.parser.add_argument('--version', action='version', version=__version__)
-        self.subparsers = self.parser.add_subparsers(help='sub-command help')
+        self.subparsers = self.parser.add_subparsers()
         self.add_parser_update_repository()
         self.add_parser_delete_repository()
         self.add_parser_update_branch()
@@ -97,8 +101,8 @@ class Commands(object):
         parser = self.subparsers.add_parser(title, help=help)
         group = parser.add_argument_group('global options')
         group.add_argument('-t', '--token',
-                           help='API token. (default: REQUIRES_TOKEN environment variable)',
-                           default=os.getenv('REQUIRES_TOKEN'))
+                           help='API token (default: REQUIRES_TOKEN environment variable)',
+                           type=TokenType(), default=os.getenv('REQUIRES_TOKEN'))
         group.add_argument('-r', '--repository', metavar='REPO',
                            help='repository name',
                            type=NameType(), required=True)
@@ -147,7 +151,7 @@ class Commands(object):
         group.add_argument('-n', '--name', help='tag name', type=NameType(), required=True)
 
     def add_parser_update_tag(self):
-        group = self.add_parser('tag', 'create or update tag',
+        group = self.add_parser('update-tag', 'create or update tag',
                                 lambda api, args: api.update_tag(args.repository, args.name, chain(args.paths)))
         self.add_argument_tag_name(group)
         self.add_argument_paths(group)
@@ -162,10 +166,10 @@ class Commands(object):
     # -------------------------------------------------------------------------
     def add_argument_site_name(self, group):
         group.add_argument('-n', '--name', help='site name (default: %s)' % socket.gethostname(),
-                           type=NameType(socket.gethostname()))
+                           type=NameType(), default=socket.gethostname())
 
     def add_parser_update_site(self):
-        group = self.add_parser('site', 'create or update site',
+        group = self.add_parser('update-site', 'create or update site',
                                 lambda api, args: api.update_site(args.repository, args.name))
         self.add_argument_site_name(group)
 

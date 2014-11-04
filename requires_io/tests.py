@@ -6,7 +6,8 @@ import unittest
 import tempfile
 import contextlib
 
-# from requires_io.main import Config, require_io_re, _to_urls
+from requires_io.api import _to_urls
+from requires_io.commands import glob_type_re, GlobType
 
 
 class Repository(object):
@@ -41,37 +42,35 @@ class TestCase(unittest.TestCase):
         self.assertTrue(val is not None)
 
     def test_re(self):
-        self.assertIsNotNone(require_io_re.search('/foo/bar/setup.py'))
-        self.assertIsNotNone(require_io_re.search('/foo/bar/tox.ini'))
-        self.assertIsNotNone(require_io_re.search('/foo/bar/buildout.cfg'))
-        self.assertIsNotNone(require_io_re.search('/foo/bar/versions.cfg'))
-        self.assertIsNotNone(require_io_re.search('/foo/bar/requirements.txt'))
-        self.assertIsNotNone(require_io_re.search('/foo/bar/requirements.pip'))
-        self.assertIsNotNone(require_io_re.search('/foo/bar/requirements/prod.txt'))
-        self.assertIsNotNone(require_io_re.search('/foo/bar/requirements/test.pip'))
+        self.assertIsNotNone(glob_type_re.search('/foo/bar/setup.py'))
+        self.assertIsNotNone(glob_type_re.search('/foo/bar/tox.ini'))
+        self.assertIsNotNone(glob_type_re.search('/foo/bar/buildout.cfg'))
+        self.assertIsNotNone(glob_type_re.search('/foo/bar/versions.cfg'))
+        self.assertIsNotNone(glob_type_re.search('/foo/bar/requirements.txt'))
+        self.assertIsNotNone(glob_type_re.search('/foo/bar/requirements.pip'))
+        self.assertIsNotNone(glob_type_re.search('/foo/bar/requirements/prod.txt'))
+        self.assertIsNotNone(glob_type_re.search('/foo/bar/requirements/test.pip'))
 
     def test_to_url(self):
         self.assertEquals([], _to_urls([]))
         self.assertEquals(['setup.py'], _to_urls(['/foo/bar/setup.py']))
         self.assertEquals(
             ['setup.py', 'requirements/prod.txt'],
-            _to_urls(['/foo/bar/setup.py', '/foo/bar/requirements/prod.txt']),
+            _to_urls([os.path.normpath('/foo/bar/setup.py'), os.path.normpath('/foo/bar/requirements/prod.txt')]),
         )
 
-    def assertPaths(self, repository, paths, raw_paths):
-        config = Config({}, raw_paths)
-        self.assertEquals(paths, config.paths)
+    def assertPaths(self, paths, path):
+        self.assertEquals(paths, GlobType()(path))
 
     def test_paths(self):
         repository = Repository('foo')
         with repository.context():
             repository.write('setup.py', 'hello')
             repository.write('foobar.txt', 'hello')
-            self.assertPaths(repository, set([os.path.join(repository.root, 'setup.py')]), [repository.root, ])
+            self.assertPaths(set([os.path.join(repository.root, 'setup.py')]), repository.root)
             self.assertPaths(
-                repository,
                 set([os.path.join(repository.root, 'foobar.txt')]),
-                [os.path.join(repository.root, '*.txt'), ],
+                os.path.join(repository.root, '*.txt')
             )
 
 
