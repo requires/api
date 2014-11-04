@@ -29,7 +29,10 @@ Create or update a tag:
 
     requires.io update-tag -t MY_TOKEN -r MY_REPO -n MY_TAG /path/to/my/sources
 
-Monitor a site (pip freeze the current environment and use the hostname as site name by default):
+Monitor a site:
+
+* freeze the current environment with pip
+* hostname is the default site name
 
 .. code-block:: text
 
