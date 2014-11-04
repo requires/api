@@ -6,8 +6,11 @@ import unittest
 import tempfile
 import contextlib
 
+from requests.exceptions import HTTPError
+from requests.status_codes import codes
+
 from requires_io.api import _to_urls
-from requires_io.commands import glob_type_re, GlobType
+from requires_io.commands import glob_type_re, GlobType, main
 
 
 class Repository(object):
@@ -41,6 +44,14 @@ class TestCase(unittest.TestCase):
     def assertIsNotNone(self, val):  # missing in 2.6
         self.assertTrue(val is not None)
 
+    def assertRaiseForStatus(self, status_code, callable_obj, *args):
+        try:
+            callable_obj(*args)
+        except HTTPError as e:
+            self.assertEquals(status_code, e.response.status_code)
+        else:
+            self.fail('failed to raise status code %d' % status_code)
+
     def test_re(self):
         self.assertIsNotNone(glob_type_re.search('/foo/bar/setup.py'))
         self.assertIsNotNone(glob_type_re.search('/foo/bar/tox.ini'))
@@ -72,6 +83,9 @@ class TestCase(unittest.TestCase):
                 set([os.path.join(repository.root, 'foobar.txt')]),
                 os.path.join(repository.root, '*.txt')
             )
+
+    def test_update_site(self):
+        self.assertRaiseForStatus(codes.NOT_FOUND, main, ['requires.io', 'update-site', '-t', '1234', '-r', 'foo'])
 
 
 if __name__ == '__main__':

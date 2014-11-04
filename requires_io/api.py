@@ -12,6 +12,20 @@ import requests
 
 log = logging.getLogger(__name__)
 
+try:
+    check_output = subprocess.check_output
+except AttributeError:
+    def check_output(*args, **kwargs):
+        process = subprocess.Popen(stdout=subprocess.PIPE, *args, **kwargs)
+        output, unused_err = process.communicate()
+        code = process.poll()
+        if code:
+            cmd = kwargs.get('args')
+            if cmd is None:
+                cmd = args[0]
+            raise subprocess.CalledProcessError(code, cmd, output=output)
+        return output
+
 
 def _common_index(paths):
     index = 0
@@ -136,7 +150,8 @@ class RequiresAPI(object):
 
     def update_site(self, repository, name):
         log.info('update site %s on repository %s', name, repository)
-        output = subprocess.check_output(['pip', 'freeze', '--local'])
+        command = ['pip', 'freeze', '--local']
+        output = check_output(command)
         encoding = getattr(sys.stdout, 'encoding', 'utf-8')
         data = codecs.decode(output, encoding, 'replace')
         requests.put(

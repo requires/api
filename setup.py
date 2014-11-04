@@ -12,6 +12,13 @@ except ImportError:
     ez_setup.use_setuptools()
 from setuptools import setup
 
+install_requires = ['requests >= 2.0.0', ]
+
+try:
+    import argparse
+except ImportError:
+    install_requires.append('argparse >= 1.2.0')
+
 setup(
     name='requires.io',
     version='0.2.0',
@@ -23,7 +30,7 @@ setup(
     packages=['requires_io', ],
     include_package_data=False,
     zip_safe=True,
-    install_requires=['requests >= 2.0.0', ],
+    install_requires=install_requires,
     entry_points={
         'console_scripts': [
             'requires.io = requires_io.commands:main',
