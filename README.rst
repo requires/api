@@ -43,6 +43,6 @@ Delete repositories, branches, tags and sites:
 .. code-block:: text
 
     requires.io delete-repo -t MY_TOKEN -r MY_REPO
-    requires.io delete-branch -t MY_TOKEN -r MY_REPO
-    requires.io delete-tag -t MY_TOKEN -r MY_REPO
-    requires.io delete-site -t MY_TOKEN -r MY_REPO
+    requires.io delete-branch -t MY_TOKEN -r MY_REPO -n MY_BRANCH
+    requires.io delete-tag -t MY_TOKEN -r MY_REPO -n MY_TAG
+    requires.io delete-site -t MY_TOKEN -r MY_REPO -n MY_SITE
