@@ -21,7 +21,7 @@ except ImportError:
 
 setup(
     name='requires.io',
-    version='0.2.1',
+    version='0.2.2',
     description='requires.io API',
     long_description=str(open('README.rst', 'rb').read()),
     url='https://requires.io/',
