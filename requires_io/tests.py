@@ -85,7 +85,7 @@ class TestCase(unittest.TestCase):
             )
 
     def test_update_site(self):
-        self.assertRaiseForStatus(codes.NOT_FOUND, main, ['requires.io', 'update-site', '-t', '1234', '-r', 'foo'])
+        self.assertRaiseForStatus(codes.UNAUTHORIZED, main, ['requires.io', 'update-site', '-t', '1234', '-r', 'foo'])
 
 
 if __name__ == '__main__':
