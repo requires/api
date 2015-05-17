@@ -66,7 +66,7 @@ class RequiresAPI(object):
             with open(path, 'rb') as f:
                 payload.append({
                     'path': relative,
-                    'content': base64.b64encode(f.read()),
+                    'content': base64.b64encode(f.read()).decode('utf-8'),
                 })
         requests.put(
             url,
