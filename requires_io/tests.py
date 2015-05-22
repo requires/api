@@ -9,8 +9,7 @@ import contextlib
 from requests.exceptions import HTTPError
 from requests.status_codes import codes
 
-from requires_io.api import _to_urls
-from requires_io.commands import glob_type_re, GlobType, main
+from requires_io.commands import glob_type_re, GlobType, main, _to_urls
 
 
 class Repository(object):
@@ -59,30 +58,64 @@ class TestCase(unittest.TestCase):
         self.assertIsNotNone(glob_type_re.search('/foo/bar/versions.cfg'))
         self.assertIsNotNone(glob_type_re.search('/foo/bar/requirements.txt'))
         self.assertIsNotNone(glob_type_re.search('/foo/bar/requirements.pip'))
+        self.assertIsNotNone(glob_type_re.search('/foo/bar/pip.txt'))
+        self.assertIsNotNone(glob_type_re.search('/foo/bar/dependences.txt'))
         self.assertIsNotNone(glob_type_re.search('/foo/bar/requirements/prod.txt'))
         self.assertIsNotNone(glob_type_re.search('/foo/bar/requirements/test.pip'))
 
     def test_to_url(self):
-        self.assertEquals([], _to_urls([]))
-        self.assertEquals(['setup.py'], _to_urls(['/foo/bar/setup.py']))
-        self.assertEquals(
-            ['setup.py', 'requirements/prod.txt'],
-            _to_urls([os.path.normpath('/foo/bar/setup.py'), os.path.normpath('/foo/bar/requirements/prod.txt')]),
-        )
+        n = os.path.normpath
+        self.assertEquals({}, _to_urls({}))
+        self.assertEquals({
+            n('/foo/bar/setup.py'): 'setup.py',
+        }, _to_urls({
+            n('/foo/bar/setup.py'): 'setup.py',
+        }))
+        self.assertEquals({
+            n('/foo/bar/setup.py'): 'setup.py',
+            n('/foo/bar/requirements/prod.txt'): 'requirements/prod.txt',
+        }, _to_urls({
+            n('/foo/bar/setup.py'): 'setup.py',
+            n('/foo/bar/requirements/prod.txt'): n('requirements/prod.txt'),
+        }))
+        self.assertEquals({
+            n('/foo/bar/requirements/dev.txt'): 'requirements/dev.txt',
+            n('/foo/bar/requirements/prod.txt'): 'requirements/prod.txt',
+        }, _to_urls({
+            n('/foo/bar/requirements/dev.txt'): n('requirements/dev.txt'),
+            n('/foo/bar/requirements/prod.txt'): n('requirements/prod.txt'),
+        }))
+        self.assertEquals({
+            n('/foo/baz/setup.py'): 'baz/setup.py',
+            n('/foo/bar/requirements/prod.txt'): 'bar/requirements/prod.txt',
+        }, _to_urls({
+            n('/foo/baz/setup.py'): n('setup.py'),
+            n('/foo/bar/requirements/prod.txt'): n('requirements/prod.txt'),
+        }))
+        self.assertEquals({
+            n('/foo/baz/setup.py'): 'baz/setup.py',
+            n('/foo/bar/requirements/prod.txt'): 'bar/requirements/prod.txt',
+        }, _to_urls({
+            n('/foo/baz/setup.py'): n('setup.py'),
+            n('/foo/bar/requirements/prod.txt'): n('requirements/prod.txt'),
+        }))
 
     def assertPaths(self, paths, path):
         self.assertEquals(paths, GlobType()(path))
 
     def test_paths(self):
+        j = os.path.join
         repository = Repository('foo')
         with repository.context():
             repository.write('setup.py', 'hello')
-            repository.write('foobar.txt', 'hello')
-            self.assertPaths(set([os.path.join(repository.root, 'setup.py')]), repository.root)
-            self.assertPaths(
-                set([os.path.join(repository.root, 'foobar.txt')]),
-                os.path.join(repository.root, '*.txt')
-            )
+            repository.write(j('requirements', 'prod.txt'), 'hello')
+            self.assertPaths({
+                j(repository.root, 'setup.py'): 'setup.py',
+                j(repository.root, 'requirements', 'prod.txt'): j('requirements', 'prod.txt'),
+            }, repository.root)
+            self.assertPaths({
+                j(repository.root, 'requirements', 'prod.txt'): j('requirements', 'prod.txt'),
+            }, j(repository.root, '*', '*.txt'))
 
     def test_update_site(self):
         self.assertRaiseForStatus(codes.UNAUTHORIZED, main, ['requires.io', 'update-site', '-t', '1234', '-r', 'foo'])

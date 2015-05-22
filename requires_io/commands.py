@@ -5,18 +5,12 @@ import sys
 import glob
 import logging
 import argparse
-import itertools
 import socket
 
 from . import __version__
 from .api import RequiresAPI
 
-
 log = logging.getLogger(__name__)
-
-
-def chain(values):
-    return set(itertools.chain(*values))
 
 
 class NameType(object):
@@ -46,24 +40,22 @@ glob_type_re = re.compile(r'''
    setup\.py
    |tox\.ini
    |(buildout|versions)\.cfg
-   |req[^/\\]*\.(txt|pip)
-   |requirements[/\\][^/\\]*\.(pip|txt)
+   |(req|pip|dep)[\w-]*\.(txt|pip)
+   |requirements[/\\][\w-]*\.(pip|txt)
    )$
 ''', re.X | re.IGNORECASE)
 
 
 class GlobType(object):
     def __call__(self, value):
-        paths = set()
+        paths = {}
         for path in glob.glob(os.path.normpath(os.path.abspath(value))):
             # If this is a folder, look for known files in it
             if os.path.isdir(path):
                 for root, dirs, files in os.walk(path):
                     # Go threw the files to check if they match a known pattern
                     for name in files:
-                        current = os.path.join(root, name)
-                        if glob_type_re.search(current):
-                            paths.add(current)
+                        self._store(paths, os.path.join(root, name))
                     # Ignore CVS folders
                     if 'CVS' in dirs:
                         dirs.remove('CVS')
@@ -71,12 +63,44 @@ class GlobType(object):
                     ignores = [d for d in dirs if d.startswith('.')]
                     for ignore in ignores:
                         dirs.remove(ignore)
-            # If this is a file, add it anyway
+            # If this is a file, add it if matches the pattern
             elif os.path.isfile(path):
-                paths.add(path)
+                self._store(paths, path)
         if not paths:
-            raise argparse.ArgumentTypeError('failed to find requirement files for %s' % path)
+            raise argparse.ArgumentTypeError('failed to find requirement files matching the pattern for %s' % value)
         return paths
+
+    def _store(self, paths, path):
+        match = glob_type_re.search(path)
+        if match:
+            paths[path] = match.group(1)
+
+
+def _common_index(paths):
+    index = 0
+    for parts in zip(*[os.path.normcase(path).split(os.sep) for path in paths]):
+        if len(set(parts)) != 1:
+            return index
+        index += 1
+    return index
+
+
+def _to_urls(*all_paths):
+    paths = {}
+    for currents_paths in all_paths:
+        paths.update(currents_paths)
+    if not paths:
+        return {}
+    candidates = set()
+    for path, basename in paths.items():
+        candidates.add(path[:len(basename)])
+    candidates = list(candidates)
+    index = _common_index(candidates)
+    urls = {}
+    for path in paths.keys():
+        url = '/'.join(os.path.splitdrive(path)[1].split(os.sep)[index:])
+        urls[path] = url
+    return urls
 
 
 class Commands(object):
@@ -135,7 +159,7 @@ class Commands(object):
 
     def add_parser_update_branch(self):
         group = self.add_parser('update-branch', 'create or update branch',
-                                lambda api, args: api.update_branch(args.repository, args.name, chain(args.paths)))
+                                lambda api, args: api.update_branch(args.repository, args.name, _to_urls(args.paths)))
         self.add_argument_branch_name(group)
         self.add_argument_paths(group)
 
@@ -152,7 +176,7 @@ class Commands(object):
 
     def add_parser_update_tag(self):
         group = self.add_parser('update-tag', 'create or update tag',
-                                lambda api, args: api.update_tag(args.repository, args.name, chain(args.paths)))
+                                lambda api, args: api.update_tag(args.repository, args.name, _to_urls(args.paths)))
         self.add_argument_tag_name(group)
         self.add_argument_paths(group)
 

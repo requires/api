@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import os
 import sys
 import json
 import base64
@@ -8,7 +7,6 @@ import logging
 import subprocess
 
 import requests
-
 
 log = logging.getLogger(__name__)
 
@@ -25,23 +23,6 @@ except AttributeError:
                 cmd = args[0]
             raise subprocess.CalledProcessError(code, cmd, output=output)
         return output
-
-
-def _common_index(paths):
-    index = 0
-    for parts in zip(*[path.split(os.sep) for path in paths]):
-        if len(set(parts)) != 1:
-            return index
-        index += 1
-
-
-def _to_urls(paths):
-    if not paths:
-        return []
-    if len(paths) == 1:
-        return [os.path.basename(next(iter(paths))), ]
-    index = _common_index(paths)
-    return ['/'.join(path.split(os.sep)[index:]) for path in paths]
 
 
 class RequiresAPI(object):
@@ -61,7 +42,7 @@ class RequiresAPI(object):
 
     def _update_reference(self, url, paths):
         payload = []
-        for path, relative in zip(paths, _to_urls(paths)):
+        for path, relative in paths.items():
             log.info('add %s to payload', relative)
             with open(path, 'rb') as f:
                 payload.append({
