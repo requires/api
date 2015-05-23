@@ -93,7 +93,7 @@ def _to_urls(*all_paths):
         return {}
     candidates = set()
     for path, basename in paths.items():
-        candidates.add(path[:len(basename)])
+        candidates.add(path[:-len(basename) - 1])
     candidates = list(candidates)
     index = _common_index(candidates)
     urls = {}
@@ -159,7 +159,7 @@ class Commands(object):
 
     def add_parser_update_branch(self):
         group = self.add_parser('update-branch', 'create or update branch',
-                                lambda api, args: api.update_branch(args.repository, args.name, _to_urls(args.paths)))
+                                lambda api, args: api.update_branch(args.repository, args.name, _to_urls(*args.paths)))
         self.add_argument_branch_name(group)
         self.add_argument_paths(group)
 
@@ -176,7 +176,7 @@ class Commands(object):
 
     def add_parser_update_tag(self):
         group = self.add_parser('update-tag', 'create or update tag',
-                                lambda api, args: api.update_tag(args.repository, args.name, _to_urls(args.paths)))
+                                lambda api, args: api.update_tag(args.repository, args.name, _to_urls(*args.paths)))
         self.add_argument_tag_name(group)
         self.add_argument_paths(group)
 

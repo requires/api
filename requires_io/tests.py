@@ -67,37 +67,37 @@ class TestCase(unittest.TestCase):
         n = os.path.normpath
         self.assertEquals({}, _to_urls({}))
         self.assertEquals({
-            n('/foo/bar/setup.py'): 'setup.py',
+            n('/root/foo/bar/setup.py'): 'setup.py',
         }, _to_urls({
-            n('/foo/bar/setup.py'): 'setup.py',
+            n('/root/foo/bar/setup.py'): 'setup.py',
         }))
         self.assertEquals({
-            n('/foo/bar/setup.py'): 'setup.py',
-            n('/foo/bar/requirements/prod.txt'): 'requirements/prod.txt',
+            n('/root/foo/bar/setup.py'): 'setup.py',
+            n('/root/foo/bar/requirements/prod.txt'): 'requirements/prod.txt',
         }, _to_urls({
-            n('/foo/bar/setup.py'): 'setup.py',
-            n('/foo/bar/requirements/prod.txt'): n('requirements/prod.txt'),
+            n('/root/foo/bar/setup.py'): 'setup.py',
+            n('/root/foo/bar/requirements/prod.txt'): n('requirements/prod.txt'),
         }))
         self.assertEquals({
-            n('/foo/bar/requirements/dev.txt'): 'requirements/dev.txt',
-            n('/foo/bar/requirements/prod.txt'): 'requirements/prod.txt',
+            n('/root/foo/bar/requirements/dev.txt'): 'requirements/dev.txt',
+            n('/root/foo/bar/requirements/prod.txt'): 'requirements/prod.txt',
         }, _to_urls({
-            n('/foo/bar/requirements/dev.txt'): n('requirements/dev.txt'),
-            n('/foo/bar/requirements/prod.txt'): n('requirements/prod.txt'),
+            n('/root/foo/bar/requirements/dev.txt'): n('requirements/dev.txt'),
+            n('/root/foo/bar/requirements/prod.txt'): n('requirements/prod.txt'),
         }))
         self.assertEquals({
-            n('/foo/baz/setup.py'): 'baz/setup.py',
-            n('/foo/bar/requirements/prod.txt'): 'bar/requirements/prod.txt',
+            n('/root/foo/baz/setup.py'): 'baz/setup.py',
+            n('/root/foo/bar/requirements/prod.txt'): 'bar/requirements/prod.txt',
         }, _to_urls({
-            n('/foo/baz/setup.py'): n('setup.py'),
-            n('/foo/bar/requirements/prod.txt'): n('requirements/prod.txt'),
+            n('/root/foo/baz/setup.py'): n('setup.py'),
+            n('/root/foo/bar/requirements/prod.txt'): n('requirements/prod.txt'),
         }))
         self.assertEquals({
-            n('/foo/baz/setup.py'): 'baz/setup.py',
-            n('/foo/bar/requirements/prod.txt'): 'bar/requirements/prod.txt',
+            n('/root/foo/baz/setup.py'): 'baz/setup.py',
+            n('/root/foo/bar/requirements/prod.txt'): 'bar/requirements/prod.txt',
         }, _to_urls({
-            n('/foo/baz/setup.py'): n('setup.py'),
-            n('/foo/bar/requirements/prod.txt'): n('requirements/prod.txt'),
+            n('/root/foo/baz/setup.py'): n('setup.py'),
+            n('/root/foo/bar/requirements/prod.txt'): n('requirements/prod.txt'),
         }))
 
     def assertPaths(self, paths, path):
