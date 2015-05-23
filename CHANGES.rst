@@ -6,7 +6,7 @@ Changelog
 
 **Bugfixes**
 
-- TODO
+- Keep detected path patterns when computing the remote basename of a requirement file
 
 0.2.3
 +++++
