@@ -34,11 +34,13 @@ class RequiresAPI(object):
         self.verify = verify
 
     def _get_headers(self, content_type='application/json'):
-        return {
+        headers = {
             'Authorization': 'Token %s' % self.token,
-            'Content-Type': content_type,
             'Accept': 'application/json',
         }
+        if content_type:
+            headers['Content-Type'] = content_type
+        return headers
 
     def _update_reference(self, url, paths):
         payload = []
@@ -151,23 +153,16 @@ class RequiresAPI(object):
         ).raise_for_status()
 
     # =========================================================================
-    # PARSE
+    # REQUIREMENTS
     # -------------------------------------------------------------------------
-    def parse(self, path):
+    def get_requirements(self, path):
         with open(path, 'rb') as fd:
-            files = {'file': fd}
-            data = {'path': path}
-            headers = {
-                'Authorization': 'Token %s' % self.token,
-                'Accept': 'application/json',
-            }
             response = requests.post(
-                self.base_url + 'parse/',
-                files=files,
-                data=data,
-                headers=headers,
+                self.base_url + 'requirements/',
+                files={'file': fd},
+                data={'path': path},
+                headers=self._get_headers(content_type=None),
                 verify=self.verify,
             )
             response.raise_for_status()
             return response.json()
-
