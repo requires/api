@@ -149,3 +149,25 @@ class RequiresAPI(object):
             headers=self._get_headers(),
             verify=self.verify,
         ).raise_for_status()
+
+    # =========================================================================
+    # PARSE
+    # -------------------------------------------------------------------------
+    def parse(self, path):
+        with open(path, 'rb') as fd:
+            files = {'file': fd}
+            data = {'path': path}
+            headers = {
+                'Authorization': 'Token %s' % self.token,
+                'Accept': 'application/json',
+            }
+            response = requests.post(
+                self.base_url + 'parse/',
+                files=files,
+                data=data,
+                headers=headers,
+                verify=self.verify,
+            )
+            response.raise_for_status()
+            return response.json()
+
