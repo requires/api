@@ -6,7 +6,7 @@ Changelog
 
 **Features**
 
-- Keep detected path patterns when computing the remote basename of a requirement file
+- Add ``parse`` command line to parse a single requirements file
 
 0.2.4
 +++++

@@ -8,6 +8,9 @@ import subprocess
 
 import requests
 
+from . import consts
+
+
 log = logging.getLogger(__name__)
 
 try:
@@ -23,10 +26,11 @@ except AttributeError:
                 cmd = args[0]
             raise subprocess.CalledProcessError(code, cmd, output=output)
         return output
+'https://requires.io/api/v2/'
 
 
 class RequiresAPI(object):
-    def __init__(self, token, base_url='https://requires.io/api/v2/', verify=True):
+    def __init__(self, token, base_url='http://127.0.0.1:8001/api/v2/', verify=True):
         self.token = token
         self.base_url = base_url
         if self.base_url[-1] != '/':
@@ -155,12 +159,17 @@ class RequiresAPI(object):
     # =========================================================================
     # REQUIREMENTS
     # -------------------------------------------------------------------------
-    def get_requirements(self, path):
-        with open(path, 'rb') as fd:
+    def get_requirements(self, file_path, file_type=None):
+        data = {}
+        if file_type:
+            if file_type not in consts.TYPES:
+                raise ValueError('invalid file type: %s' % file_type)
+            data['file_type'] = file_type
+        with open(file_path, 'rb') as fd:
             response = requests.post(
                 self.base_url + 'requirements/',
                 files={'file': fd},
-                data={'path': path},
+                data=data,
                 headers=self._get_headers(content_type=None),
                 verify=self.verify,
             )

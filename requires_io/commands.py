@@ -8,8 +8,9 @@ import argparse
 import socket
 
 from .draw import draw
-from . import __version__
+from . import __version__, consts
 from .api import RequiresAPI
+
 
 log = logging.getLogger(__name__)
 
@@ -124,6 +125,7 @@ class Commands(object):
         self.add_parser_delete_tag()
         self.add_parser_update_site()
         self.add_parser_delete_site()
+        self.add_parser_parse()
 
     def add_argument_paths(self, group):
         group.add_argument('paths', metavar='PATH', type=GlobType(), nargs='+',
@@ -218,13 +220,16 @@ class Commands(object):
     # REQUIREMENTS
     # -------------------------------------------------------------------------
     def add_parser_parse(self):
-        group = self.add_parser('parse', 'parse requirements file',
-                                lambda api, args: draw(api.get_requirements(args.paths[0])))
+        group = self.add_parser('parse', 'parse provided requirements file',
+                                lambda api, args: draw(api.get_requirements(args.paths[0], args.file_type)))
+        group.add_argument('-k', '--kind', dest='file_type', choices=consts.TYPES,
+                           help='type of requirements file (default: let us guess from file name)')
         group.add_argument('paths', metavar='PATH', type=PathType(), nargs=1,
-                           help='requirement file to analyze')
+                           help='requirements file to process')
 
 
 def main(args=sys.argv, setup_log=True):
     if setup_log:
         logging.basicConfig(format='%(message)s', level=logging.INFO)
+        logging.getLogger('requests').setLevel(logging.WARNING)
     return Commands().execute(args[1:])

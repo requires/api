@@ -4,6 +4,8 @@ import sys
 
 def column_length(requirements, title, key):
     l = lambda r: len(key(r))
+    if not requirements:
+        return len(title)
     return max(len(title), l(max(requirements, key=l)))
 
 
@@ -21,6 +23,9 @@ def draw(requirements, stream=sys.stdout):
     stream.write(separator)
     stream.write(string_format % (t_name, t_specs, t_latest_version, t_status))
     stream.write(separator)
-    for r in requirements:
-        stream.write(string_format % (r['package']['name'], r['specs'], r['latest']['version'], r['status']))
+    if requirements:
+        for r in requirements:
+            stream.write(string_format % (r['package']['name'], r['specs'], r['latest']['version'], r['status']))
+    else:
+        stream.write(string_format % ('-', '-', '-', '-'))
     stream.write(separator)
