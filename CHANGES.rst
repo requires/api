@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+0.2.6
++++++
+
+**Bugfixes**
+
+- Display help when ``requires.io`` called without argument
+
 0.2.5
 +++++
 

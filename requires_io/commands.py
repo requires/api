@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
-import os
-import re
-import sys
+import argparse
 import glob
 import logging
-import argparse
+import os
+import re
 import socket
+import sys
 
-from .draw import draw
-from . import __version__, consts
-from .api import RequiresAPI
-
+from requires_io import __version__, consts
+from requires_io.api import RequiresAPI
+from requires_io.draw import draw
 
 log = logging.getLogger(__name__)
 
@@ -149,7 +148,10 @@ class Commands(object):
 
     def execute(self, args):
         args = self.parser.parse_args(args)
-        return args.execute(args)
+        if not hasattr(args, 'execute'):
+            self.parser.print_usage()
+        else:
+            args.execute(args)
 
     # =========================================================================
     # REPOSITORY
@@ -173,7 +175,8 @@ class Commands(object):
 
     def add_parser_update_branch(self):
         group = self.add_repository_parser('update-branch', 'create or update branch',
-                                           lambda api, args: api.update_branch(args.repository, args.name, _to_urls(*args.paths)))
+                                           lambda api, args: api.update_branch(args.repository, args.name,
+                                                                               _to_urls(*args.paths)))
         self.add_argument_branch_name(group)
         self.add_argument_paths(group)
 
@@ -190,7 +193,8 @@ class Commands(object):
 
     def add_parser_update_tag(self):
         group = self.add_repository_parser('update-tag', 'create or update tag',
-                                           lambda api, args: api.update_tag(args.repository, args.name, _to_urls(*args.paths)))
+                                           lambda api, args: api.update_tag(args.repository, args.name,
+                                                                            _to_urls(*args.paths)))
         self.add_argument_tag_name(group)
         self.add_argument_paths(group)
 
@@ -232,4 +236,4 @@ def main(args=sys.argv, setup_log=True):
     if setup_log:
         logging.basicConfig(format='%(message)s', level=logging.INFO)
         logging.getLogger('requests').setLevel(logging.WARNING)
-    return Commands().execute(args[1:])
+    Commands().execute(args[1:])

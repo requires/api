@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-import os
 import codecs
-import shutil
-import unittest
-import tempfile
 import contextlib
+import os
+import shutil
+import tempfile
+import unittest
 
 from requests.exceptions import HTTPError
 from requests.status_codes import codes

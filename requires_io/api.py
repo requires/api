@@ -8,7 +8,7 @@ import subprocess
 
 import requests
 
-from . import consts
+from requires_io import consts
 
 
 log = logging.getLogger(__name__)
