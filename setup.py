@@ -27,7 +27,7 @@ with codecs.open('CHANGES.rst', 'r', 'utf-8') as f:
 
 setup(
     name='requires.io',
-    version='0.2.5',
+    version='0.2.6',
     description='Requires.io API',
     long_description=readme + '\n\n' + history,
     url='https://requires.io/',
